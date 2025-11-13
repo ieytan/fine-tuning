@@ -1,0 +1,10 @@
+openai
+python-dotenv
+transformers
+accelerate
+peft
+bitsandbytes
+datasets
+fire
+huggingface_hub
+torch
