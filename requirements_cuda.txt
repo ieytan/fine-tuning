@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cu130
+
 openai
 python-dotenv
 transformers
@@ -7,4 +9,5 @@ bitsandbytes
 datasets
 fire
 huggingface_hub
-torch torchvision --index-url https://download.pytorch.org/whl/cu130
+torch 
+torchvision

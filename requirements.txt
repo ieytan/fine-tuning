@@ -8,3 +8,4 @@ datasets
 fire
 huggingface_hub
 torch
+torchvision

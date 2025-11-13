@@ -8,7 +8,7 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 # Create a new virtual envrionment, activate it, and install requirements
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements_cuda.txt
 
