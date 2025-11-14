@@ -35,17 +35,17 @@ config = LoHaConfig(
 
 )
 model = get_peft_model(model, config)
-# print(model)
+print(model)
 model.print_trainable_parameters()
 
 # Get Dataset
 from samsum_dataset import get_preprocessed_samsum
-train_dataset = get_preprocessed_samsum({}, tokenizer, "train[1:10]")
-test_dataset = get_preprocessed_samsum({}, tokenizer, "validation[1:10]")
+train_dataset = get_preprocessed_samsum({}, tokenizer, "train[0:100]")
+test_dataset = get_preprocessed_samsum({}, tokenizer, "validation[0:100]")
 
 import torch.optim as optim
 optimizer = optim.AdamW(
-            model.parameters(),
+    model.parameters(),
 )
 
 from torch.optim.lr_scheduler import StepLR
@@ -63,7 +63,9 @@ training_args = TrainingArguments(
     per_device_train_batch_size=8 if torch.cuda.is_available() else 1, # On MPS devices, I need to set the batch size to 1 to avoid memory issues.
     per_device_eval_batch_size=8 if torch.cuda.is_available() else 1, # On MPS devices, I need to set the batch size to 1 to avoid memory issues.
     seed=train_config.seed,
-    fp16= True if torch.cuda.is_available() else False. # Mixed precisions speeds things up on the DGX but not on MPS.
+    fp16= True if torch.cuda.is_available() else False, # Mixed precisions speeds things up on the DGX but not on MPS.
+
+    report_to="none",
 )
 
 data_collator = DataCollatorForSeq2Seq(
@@ -84,17 +86,6 @@ trainer = Trainer(
 )
 trainer.train()
 
-# import torch
-model.save_pretrained("LoHa_experiment1")
-model = LlamaForCausalLM.from_pretrained(
-            "LoHa_experiment1",
-            device_map=device,
-            use_cache=True if torch.cuda.is_available() else True,
-            dtype="auto",
-            is_decoder=True
-        )
-
-device = next(model.parameters()).device
 model_input = tokenizer(train_config.eval_promt, return_tensors="pt").to(device)
 
 # Set seed for reproducibility

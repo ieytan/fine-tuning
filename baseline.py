@@ -29,22 +29,13 @@ device = (
 tokenizer = AutoTokenizer.from_pretrained(train_config.model_name) 
 tokenizer.pad_token = tokenizer.eos_token
 
-# Configure LoRA
-from peft import LoraConfig, TaskType, get_peft_model
-lora_config = LoraConfig(
-    task_type=TaskType.CAUSAL_LM, # type of task to train on
-)
-model = get_peft_model(model, lora_config)
-model.print_trainable_parameters()
-
 # Get Dataset
 from samsum_dataset import get_preprocessed_samsum
-train_dataset = get_preprocessed_samsum({}, tokenizer, "train[0:100]")
 test_dataset = get_preprocessed_samsum({}, tokenizer, "validation[0:100]")
 
 import torch.optim as optim
 optimizer = optim.AdamW(
-    model.parameters(),
+            model.parameters(),
 )
 
 from torch.optim.lr_scheduler import StepLR
@@ -61,10 +52,7 @@ training_args = TrainingArguments(
     load_best_model_at_end=True,
     per_device_train_batch_size=8 if torch.cuda.is_available() else 1, # On MPS devices, I need to set the batch size to 1 to avoid memory issues.
     per_device_eval_batch_size=8 if torch.cuda.is_available() else 1, # On MPS devices, I need to set the batch size to 1 to avoid memory issues.
-    seed=train_config.seed,
-    fp16=True if torch.cuda.is_available() else False,
-
-    report_to="none",
+    seed=train_config.seed
 )
 
 data_collator = DataCollatorForSeq2Seq(
@@ -79,26 +67,10 @@ trainer = Trainer(
     optimizers=(optimizer, scheduler),
     args=training_args,
     data_collator=data_collator,
-    train_dataset=train_dataset,
+    # train_dataset=train_dataset,
     eval_dataset=test_dataset,
     processing_class=tokenizer,
 )
-trainer.train()
 
-model_input = tokenizer(train_config.eval_promt, return_tensors="pt").to(device)
-
-# Set seed for reproducibility
-set_seed(train_config.seed)
-
-# Perform beam-search
-model.eval()
-with torch.inference_mode():
-    print(tokenizer.decode(
-        model.generate(
-            **model_input, 
-            max_new_tokens=train_config.max_new_tokens, 
-            num_beams=train_config.num_beams, 
-            do_sample=False
-        )[0], 
-        skip_special_tokens=True
-    ))
+results = trainer.evaluate()
+print(results)

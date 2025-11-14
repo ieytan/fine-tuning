@@ -9,3 +9,5 @@ fire
 huggingface_hub
 torch
 torchvision
+trackio
+wandb

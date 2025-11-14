@@ -30,14 +30,11 @@ tokenizer = AutoTokenizer.from_pretrained(train_config.model_name)
 tokenizer.pad_token = tokenizer.eos_token
 
 # Configure LoRA
-from peft import TaskType, get_peft_model, PromptEmbedding, PromptTuningConfig, PromptTuningInit
+from peft import TaskType, get_peft_model, PromptEmbedding, PromptEncoderConfig
 prompt_tuning_init_text = "Summarize this dialogue"
-config = PromptTuningConfig(
+config = PromptEncoderConfig(
     task_type=TaskType.CAUSAL_LM,
-    prompt_tuning_init=PromptTuningInit.TEXT,
-    prompt_tuning_init_text=prompt_tuning_init_text,
     num_virtual_tokens=6,
-    tokenizer_name_or_path=train_config.model_name
 )
 
 model = get_peft_model(model, config)
@@ -62,7 +59,7 @@ scheduler = StepLR(
 )
 
 training_args = TrainingArguments(
-    output_dir="prompt_tuning1",
+    output_dir="p_tuning",
     eval_strategy="epoch",
     save_strategy="epoch",
     load_best_model_at_end=True,
@@ -70,7 +67,9 @@ training_args = TrainingArguments(
     per_device_eval_batch_size=8 if torch.cuda.is_available() else 1, # On MPS devices, I need to set the batch size to 1 to avoid memory issues.
     seed=train_config.seed,
     fp16=True if torch.cuda.is_available() else False,
+
     report_to="none",
+    # project="p-tuning-optimization",
 )
 
 data_collator = DataCollatorForSeq2Seq(

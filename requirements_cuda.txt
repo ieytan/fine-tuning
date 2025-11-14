@@ -11,3 +11,5 @@ fire
 huggingface_hub
 torch 
 torchvision
+wandb
+trackio

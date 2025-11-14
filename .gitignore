@@ -5,3 +5,6 @@ __pycache__/
 LoHa_experiment1/
 LoRA_experiment1/
 prompt_tuning1/
+p_tuning/
+prefix-tuning/
+wandb/
